@@ -46,7 +46,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         // Начальная энтропия
         public List<byte> entropyBytes { get; set; }
         // Разделение на количество слов
-        public List<byte[]> bytesEachWordBinary { get; set; }
+        public List<List<byte>> bytesEachWordBinary { get; set; }
         // Перевод байтов слов из двоичной системы исчисления в десятичную
         public List<int> bytesEachWordDecimal { get; set; }
         // Поиск слов по их позициям на основе массива байтов в десятичной системе
@@ -69,7 +69,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
             this.entropyAlgorythm = entropyAlgorythm;
 
             entropyBytes = new List<byte>();
-            bytesEachWordBinary = new List<byte[]>();
+            bytesEachWordBinary = new List<List<byte>>();
             bytesEachWordDecimal = new List<int>();
             wordsBIP39 = new List<string>();
         }
@@ -104,11 +104,23 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         /// Заполнить ЛЮБОЙ массив слов из байтов в класе
         /// </summary>
         /// <returns></returns>
-        public void GetBytesEachWordBinary(List<byte[]> bytesEachWordBinary, List<byte> entropyBytes, int countWords)
+        public void GetBytesEachWordBinary(List<List<byte>> bytesEachWordBinary, List<byte> entropyBytes, int countWords)
         {
+            int countBytes = entropyBytes.Count;
             for (int wordIndex = 0; wordIndex < countWords; wordIndex++)
             {
-
+                int startIndex = wordIndex * countWords;
+                int endIndex = (wordIndex + 1) * countWords;
+                List<byte> sliceBytes;
+                try
+                {
+                    sliceBytes = entropyBytes.GetRange(startIndex, countWords);
+                }
+                catch (ArgumentOutOfRangeException ex)
+                {
+                    sliceBytes = entropyBytes.GetRange(startIndex, endIndex - startIndex);
+                }
+                bytesEachWordBinary.Add(sliceBytes);
             }
         }
             
