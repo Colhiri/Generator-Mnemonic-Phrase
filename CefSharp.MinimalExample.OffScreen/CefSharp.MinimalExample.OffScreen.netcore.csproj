@@ -67,7 +67,15 @@
   </ItemGroup>
   
   <ItemGroup>
+    <Compile Remove="Mnem.cs" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <None Remove="app.config" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <None Include="Mnem.cs" />
   </ItemGroup>
 
   <ItemGroup>
