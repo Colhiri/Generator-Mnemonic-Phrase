@@ -8,6 +8,6 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         /// Получение энтропии в байтах
         /// </summary>
         /// <returns></returns>
-        public List<byte> ExecuteGetEntropyBytes(int countBytes);
+        public void ExecuteGetEntropyBytes(List<int> _entropyBytes, int countEntropyBytes);
     }
 }

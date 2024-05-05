@@ -14,6 +14,8 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using CefSharp.MinimalExample.OffScreen.GenerationMnemonic;
+using System.Net;
 
 namespace CefSharp.MinimalExample.OffScreen
 {
@@ -42,7 +44,36 @@ namespace CefSharp.MinimalExample.OffScreen
         /// </summary>
         /// <param name="args">args</param>
         /// <returns>exit code</returns>
-        public static int Main(string[] args)
+        public static void Main(string[] args)
+        {
+            var algorythmGPRN = new PseudoRandomGenerationByte();
+            var generation = new MnemonicPhrase(GenerationMnemonic.WordListLanguage.English, 128, 12, algorythmGPRN);
+
+            int countByteEntropy = 128;
+            int countWord = 12;
+
+            List<int> entropyBytes = new List<int>();
+            generation.GetEntropyBytes(entropyBytes, countByteEntropy);
+
+            string controlSum = generation.GetControlSum(entropyBytes);
+
+            string lastWordFirstPart = generation.GetLastWordFirstPartToBinary(controlSum);
+
+            List<List<int>> bytesEachWordBinary = new List<List<int>>();
+            generation.GetBytesEachWordBinary(bytesEachWordBinary, entropyBytes, countWord);
+
+            List<int> bytesEachWordDecimal = new List<int>();
+            generation.GetBytesEachWordDecimal(bytesEachWordDecimal, bytesEachWordBinary);
+
+            string lastWordSecondPart = string.Concat(bytesEachWordBinary[^1]);
+
+            string lastWordBinary = lastWordFirstPart + lastWordSecondPart;
+            int lastWordDecimal = Convert.ToInt32(lastWordBinary, 2);
+            bytesEachWordDecimal[bytesEachWordDecimal.Count - 1] = lastWordDecimal;
+
+        }
+
+        public static int PastMain()
         {
             // Ссылка на сайт, где будут проверяться ключи
             const string testUrl = "https://solflare.com/onboard/access";
