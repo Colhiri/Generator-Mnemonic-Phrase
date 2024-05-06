@@ -6,6 +6,7 @@ using System.Text;
 using System.Security.Cryptography;
 using CefSharp.DevTools.Preload;
 using System.Reflection;
+using System.IO;
 
 namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
 {
@@ -25,7 +26,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
     /// <summary>
     /// Базовый класс генерации мнемонической фразы
     /// </summary>
-    public class MnemonicPhrase
+    public class CreateMnemonicPhrase
     {
         // Язык мнемонической фразы
         public WordListLanguage languageMnemonicPhrase { get; set; }
@@ -42,6 +43,12 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
                 }
             }
         }
+        private string _addingCountByteInTail;
+        public string addingCountByteInTail
+        {
+            get { return _addingCountByteInTail; }
+            set { _addingCountByteInTail = value; }
+        }
         // Количество слов в мнемонической фразе
         private int _countWords;
         public int countWords 
@@ -55,7 +62,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         public List<List<int>> bytesEachWordBinary { get; set; }
         // Перевод байтов слов из двоичной системы исчисления в десятичную
         public List<int> bytesEachWordDecimal { get; set; }
-        // Поиск слов по их позициям на основе массива байтов в десятичной системе
+        // Слова в выбранного языке по спецификации BIP39
         public List<string> wordsBIP39 { get; set; }
         // Алгоритм 
         private IGetEntropy entropyAlgorythm { get; set; }
@@ -66,10 +73,9 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
             get { return _controlSum; }
             set { _controlSum = value; } 
         }
-        // Первые два символа контрольной суммы в двоичной системе (первая часть последнего слова)
-        public string firstPartLastWord { get; set; }
-        // Хвост после разделения массива байтов по словам (вторая часть последнего слова)
-        public string secondPartLastWord { get; set; }
+        // Мнемоническая фраза
+        public List<string> mnemonicPhrase { get; set; }
+        
 
 
         /// <summary>
@@ -79,7 +85,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         /// <param name="countEntropyByte"></param>
         /// <param name="countWords"></param>
         /// <param name="entropyAlgorythm"></param>
-        public MnemonicPhrase(WordListLanguage languageMnemonicPhrase, int countEntropyByte, int countWords, IGetEntropy entropyAlgorythm)
+        public CreateMnemonicPhrase(WordListLanguage languageMnemonicPhrase, int countEntropyByte, int countWords, IGetEntropy entropyAlgorythm)
         {
             this.languageMnemonicPhrase = languageMnemonicPhrase;
             this.countEntropyBytes = countEntropyByte;
@@ -90,6 +96,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
             bytesEachWordBinary = new List<List<int>>();
             bytesEachWordDecimal = new List<int>();
             wordsBIP39 = new List<string>();
+            mnemonicPhrase = new List<string>();
         }
 
         /// <summary>
@@ -131,18 +138,25 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         }
 
         /// <summary>
-        /// Перевести первые два символа контрольной суммы из шестнадцатеричной системы в двоичную
+        /// Получить N байтов из контрольной суммы, исходя из ее количества
         /// </summary>
-        public void GetLastWordFirstPartToBinary()
+        public void GetAddingByte()
         {
-            firstPartLastWord = GetLastWordFirstPartToBinary(controlSum);
+            addingCountByteInTail = GetAddingBytes(controlSum);
         }
-        public string GetLastWordFirstPartToBinary(string controlSum)
+        public string GetAddingBytes(string controlSum)
         {
-            string twoCharStartInControlSum = controlSum[0..2];
-            int transformToInt = Convert.ToInt32(twoCharStartInControlSum, 16);
+            // Получаем количество байтов, которые нужно добавить к изначальной энтропии
+            int countAddingBytes = (int)((int)(controlSum.Count() * 4) / 32);
+
+            // Переводим контрольную сумму в последовательность байт
+            int transformToInt = Convert.ToInt32(controlSum, 16);
             string transformToBytes = Convert.ToString(transformToInt, 2);
-            return transformToBytes;
+
+            // Получаем хвост из байтов
+            string addingBytes = transformToBytes[0..countAddingBytes];
+
+            return addingBytes;
         }
 
         /// <summary>
@@ -200,20 +214,32 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
             }
         }
 
-
-
-
         /// <summary>
-        /// Получение слов из словаря
+        /// Загрузка списка слов, исходя из выбранного языка
         /// </summary>
-        /// <returns></returns>
-        public List<string> GetWordsBIP39()
+        public void GetBIP39()
         {
-            throw new System.Exception("Not realize function!");
-            return new List<string>() { "" };
+            string path = $"WordsForSeedPhrase/{languageMnemonicPhrase}.txt";
+            wordsBIP39 = GetBIP39(path);
+        }
+        public List<string> GetBIP39(string path)
+        {
+            if (!File.Exists(path))
+            {
+                throw new System.ArgumentException("Invalid language select!");
+            }
+            return File.ReadAllLines(path).ToList();
         }
 
-
+        public void GetMnemonicPhrase()
+        {
+            mnemonicPhrase = GetMnemonicPhrase(bytesEachWordDecimal, wordsBIP39);
+        }
+        public List<string> GetMnemonicPhrase(List<int> bytesEachWordDecimal, List<string> wordsBIP39)
+        {
+            List<string> mnemonicPhrase = bytesEachWordDecimal.Select(x => wordsBIP39[x]).ToList();
+            return mnemonicPhrase;
+        }
 
     }
 }

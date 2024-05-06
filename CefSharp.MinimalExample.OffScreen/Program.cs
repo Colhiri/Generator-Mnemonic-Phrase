@@ -47,17 +47,21 @@ namespace CefSharp.MinimalExample.OffScreen
         public static void Main(string[] args)
         {
             var algorythmGPRN = new PseudoRandomGenerationByte();
-            var generation = new MnemonicPhrase(GenerationMnemonic.WordListLanguage.English, 128, 12, algorythmGPRN);
+            var generation = new CreateMnemonicPhrase(GenerationMnemonic.WordListLanguage.English, 128, 12, algorythmGPRN);
 
-            int countByteEntropy = 128;
-            int countWord = 12;
+            int countByteEntropy = 256;
+            int countWord = 24;
 
             List<int> entropyBytes = new List<int>();
             generation.GetEntropyBytes(entropyBytes, countByteEntropy);
 
             string controlSum = generation.GetControlSum(entropyBytes);
 
-            string lastWordFirstPart = generation.GetLastWordFirstPartToBinary(controlSum);
+            string addingBytes = generation.GetAddingBytes(controlSum);
+            // Преобразовать добавочные байты в массив и после добавить его к существующей энтропии
+
+
+            entropyBytes[^1] = 
 
             List<List<int>> bytesEachWordBinary = new List<List<int>>();
             generation.GetBytesEachWordBinary(bytesEachWordBinary, entropyBytes, countWord);
@@ -65,12 +69,11 @@ namespace CefSharp.MinimalExample.OffScreen
             List<int> bytesEachWordDecimal = new List<int>();
             generation.GetBytesEachWordDecimal(bytesEachWordDecimal, bytesEachWordBinary);
 
-            string lastWordSecondPart = string.Concat(bytesEachWordBinary[^1]);
 
-            string lastWordBinary = lastWordFirstPart + lastWordSecondPart;
-            int lastWordDecimal = Convert.ToInt32(lastWordBinary, 2);
-            bytesEachWordDecimal[bytesEachWordDecimal.Count - 1] = lastWordDecimal;
 
+            string path = $"WordsForSeedPhrase/{generation.languageMnemonicPhrase}.txt";
+            List<string> wordsBIP39 = generation.GetBIP39(path);
+            List<string> mnemonicPhrase = generation.GetMnemonicPhrase(bytesEachWordDecimal, wordsBIP39);
         }
 
         public static int PastMain()
