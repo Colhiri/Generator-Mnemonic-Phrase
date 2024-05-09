@@ -2,35 +2,13 @@
 //
 // Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-using CefSharp.OffScreen;
-using CefSharp.Web;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using CefSharp.MinimalExample.OffScreen.GenerationMnemonic;
-using System.Net;
+using CefSharp.MinimalExample.OffScreen.LoadDataToURL;
+using CefSharp.MinimalExample.OffScreen.Notifications;
 
 namespace CefSharp.MinimalExample.OffScreen
 {
-    public enum WordListLanguage
-    {
-        ChineseSimplified,
-        ChineseTraditional,
-        English,
-        French,
-        Italian,
-        Japanese,
-        Korean,
-        Spanish
-    }
-
     /// <summary>
     /// CefSharp.OffScreen Minimal Example
     /// </summary>
@@ -46,143 +24,58 @@ namespace CefSharp.MinimalExample.OffScreen
         /// <returns>exit code</returns>
         public static void Main(string[] args)
         {
+            // Автоматическое создание
             var algorythmGPRN = new PseudoRandomGenerationByte();
+            WordListLanguage language = WordListLanguage.English;
+            int countByteEntropy = 128;
+            int countWord = 12;
+            // Создаем генератор мнемонической фразы
+            var generation = new CreateMnemonicPhrase(language, countByteEntropy, countWord, algorythmGPRN);
+            // Создаем генерационную модель
+            Notification notify = new Notification();
+
+            /*
+            // Ручное создание
+            // Создаем алгоритм
+            var algorythmGPRN = new PseudoRandomGenerationByte();
+            // Создаем генератор мнемонической фразы
             var generation = new CreateMnemonicPhrase(GenerationMnemonic.WordListLanguage.English, 128, 12, algorythmGPRN);
-
-            int countByteEntropy = 256;
-            int countWord = 24;
-
+            // Задаем параметры ручной генерации
+            int countByteEntropy = 128;
+            int countWord = 12;
+            // Получение заданное количество байт энтропии
             List<int> entropyBytes = new List<int>();
             generation.GetEntropyBytes(entropyBytes, countByteEntropy);
-
-            string controlSum = generation.GetControlSum(entropyBytes);
-
-            string addingBytes = generation.GetAddingBytes(controlSum);
-            // Преобразовать добавочные байты в массив и после добавить его к существующей энтропии
-
-
-            entropyBytes[^1] = 
-
+            // Считаем контрольную сумму
+            byte[] controlSum = generation.GetControlSum(entropyBytes);
+            // Считаем добавочные байты для добавления в байты энтропии для разделения всех байтов на слова по 11 байтов в каждом
+            string addingBytes = generation.GetAddingBytes(controlSum, entropyBytes.Count());
+            // Трансформируем их из строки в массив
+            List<int> transformAddingBytesToInt = addingBytes.ToCharArray().Select(x => int.Parse(x.ToString())).ToList();
+            entropyBytes.AddRange(transformAddingBytesToInt);
+            // Разделяем байты по 11 элементов
             List<List<int>> bytesEachWordBinary = new List<List<int>>();
             generation.GetBytesEachWordBinary(bytesEachWordBinary, entropyBytes, countWord);
-
+            // Преобразуем байты из двоичной системы в десятичную
             List<int> bytesEachWordDecimal = new List<int>();
             generation.GetBytesEachWordDecimal(bytesEachWordDecimal, bytesEachWordBinary);
-
-
-
+            // Получаем мнемоническую фразу
             string path = $"WordsForSeedPhrase/{generation.languageMnemonicPhrase}.txt";
             List<string> wordsBIP39 = generation.GetBIP39(path);
             List<string> mnemonicPhrase = generation.GetMnemonicPhrase(bytesEachWordDecimal, wordsBIP39);
-        }
+            */
 
-        public static int PastMain()
-        {
-            // Ссылка на сайт, где будут проверяться ключи
-            const string testUrl = "https://solflare.com/onboard/access";
+            // Создаем новую страницу solflare через Cef
+            string url = @$"https://solflare.com/onboard/access";
+            LoadData loadData = new LoadData(url, generation, notify, 100000);
 
-            // Получение seed-фразы
-            List<string> mnemonic = new List<string>() { "1", "2", "3", "1", "2", "3", "1", "2", "3", "1", "2", "3" };
+            // Тестируем созданную мнемоническую фразу на сайте
+            Status checkRightMnemonicPhrase = loadData.TestingPhrase();
 
-            // 
-            AsyncContext.Run(async delegate
-            {
-                var settings = new CefSettings()
-                {
-                    //By default CefSharp will use an in-memory cache, you need to specify a Cache Folder to persist data
-                    CachePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "CefSharp\\Cache")
-                };
+            Console.Write(checkRightMnemonicPhrase);
 
-                //Perform dependency check to make sure all relevant resources are in our output directory.
-                var success = await Cef.InitializeAsync(settings, performDependencyCheck: true, browserProcessHandler: null);
+            Console.ReadKey();
 
-                if (!success)
-                {
-                    throw new Exception("Unable to initialize CEF, check the log file.");
-                }
-
-                // Create the CefSharp.OffScreen.ChromiumWebBrowser instance
-                using (var browser = new ChromiumWebBrowser(testUrl))
-                {
-                    var initialLoadResponse = await browser.WaitForInitialLoadAsync();
-
-                    if (!initialLoadResponse.Success)
-                    {
-                        throw new Exception(string.Format("Page load failed with ErrorCode:{0}, HttpStatusCode:{1}", initialLoadResponse.ErrorCode, initialLoadResponse.HttpStatusCode));
-                    }
-
-                    var setValue = browser.EvaluateScriptAsync("document.getElementById('mnemonic-input-0').value ='hute'");
-
-                    await setValue;
-
-                    var sourcePage = browser.GetSourceAsync();
-
-                    while (!setValue.Result.Success)
-                    {
-                        setValue = browser.EvaluateScriptAsync("document.getElementById('mnemonic-input-0').value ='hute'");
-
-                        await setValue;
-
-                        await Task.Delay(500);
-
-                        if (setValue.Result.Success)
-                        {
-                            int maxMnemonicInput = 12;
-                            for (int mnemonicInput = 0; mnemonicInput < maxMnemonicInput; mnemonicInput++)
-                            {
-                                setValue = browser.EvaluateScriptAsync($"document.getElementById('mnemonic-input-{mnemonicInput}').value ='{mnemonic[mnemonicInput]}'");
-
-                                await setValue;
-                            }
-                        }
-                    }
-
-                    await sourcePage;
-
-                    string result = sourcePage.Result;
-
-                    // Нажимаем кнопку продолжить
-                    var pushButton = browser.EvaluateScriptAsync("document.getElementByClassName('MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium  css-1hcgjm')[0].click();");
-                    await pushButton;
-
-                    // Проверяем наличие ошибки
-                    var errorCheck = browser.EvaluateScriptAsync("document.getElementByClassName('MuiFormHelperText-root Mui-error css-11a179u')[1];");
-                    await errorCheck;
-
-                    //Give the browser a little time to render
-                    await Task.Delay(500);
-                    // Wait for the screenshot to be taken.
-                    var bitmapAsByteArray = await browser.CaptureScreenshotAsync();
-
-                    // File path to save our screenshot e.g. C:\Users\{username}\Desktop\CefSharp screenshot.png
-                    var screenshotPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "CefSharp screenshot.png");
-
-                    Console.WriteLine();
-                    Console.WriteLine("Screenshot ready. Saving to {0}", screenshotPath);
-
-                    File.WriteAllBytes(screenshotPath, bitmapAsByteArray);
-
-                    Console.WriteLine("Screenshot saved. Launching your default image viewer...");
-
-                    // Tell Windows to launch the saved image.
-                    Process.Start(new ProcessStartInfo(screenshotPath)
-                    {
-                        // UseShellExecute is false by default on .NET Core.
-                        UseShellExecute = true
-                    });
-
-                    Console.WriteLine("Image viewer launched. Press any key to exit.");
-                }
-
-                // Wait for user to press a key before exit
-                Console.ReadKey();
-
-                // Clean up Chromium objects. You need to call this in your application otherwise
-                // you will get a crash when closing.
-                Cef.Shutdown();
-            });
-
-            return 0;
         }
     }
 }
