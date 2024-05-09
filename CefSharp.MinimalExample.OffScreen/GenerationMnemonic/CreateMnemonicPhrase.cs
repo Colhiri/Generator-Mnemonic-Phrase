@@ -15,12 +15,12 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         public WordListLanguage languageMnemonicPhrase { get; set; }
         // Количество бит энтропии, если число не кратно 32 (битам) то оно неверно задано
         private int _countEntropyByte;
-        public int countEntropyBytes 
+        public int countEntropyBytes
         {
             get { return _countEntropyByte; }
-            set 
+            set
             {
-                if (!(value % 32 == 0)) 
+                if (!(value % 32 == 0))
                 {
                     throw new ArgumentException("Количество бит энтропии не кратно 32. Необходимо изменить значение.");
                 }
@@ -35,10 +35,10 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         }
         // Количество слов в мнемонической фразе
         private int _countWords;
-        public int countWords 
-        { 
+        public int countWords
+        {
             get { return _countWords; }
-            set { _countWords = value; } 
+            set { _countWords = value; }
         }
         // Начальная энтропия
         public List<int> entropyBytes { get; set; }
@@ -52,10 +52,10 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         private IGetEntropy entropyAlgorythm { get; set; }
         // Контрольная сумма
         private byte[] _controlSum;
-        public byte[] controlSum 
+        public byte[] controlSum
         {
             get { return _controlSum; }
-            set { _controlSum = value; } 
+            set { _controlSum = value; }
         }
         // Мнемоническая фраза
         public List<string> mnemonicPhrase { get; set; }
@@ -93,7 +93,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
             wordsBIP39 = new List<string>();
             mnemonicPhrase = new List<string>();
 
-            GetEntropyBytes();
+            entropyBytes = GetEntropyBytes(countEntropyBytes);
             GetControlSum();
             GetAddingBytes();
             GetBytesEachWordBinary();
@@ -107,18 +107,10 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         /// <summary>
         /// Заполнить массив байтов энтропии в классе
         /// </summary>
-        private void GetEntropyBytes()
+        private List<int> GetEntropyBytes(int countEntropyBytes)
         {
-            GetEntropyBytes(entropyBytes, countEntropyBytes);
-        }
-        /// <summary>
-        /// Заполнить ЛЮБОЙ массив байтов энтропии
-        /// </summary>
-        /// <param name="countEntropyBytes"></param>
-        /// <returns></returns>
-        public void GetEntropyBytes(List<int> _entropyBytes, int countEntropyBytes)
-        {
-            entropyAlgorythm.ExecuteGetEntropyBytes(_entropyBytes, countEntropyBytes);
+            List<int> entropyBytes = entropyAlgorythm.ExecuteGetEntropyBytes(countEntropyBytes);
+            return entropyBytes;
         }
 
         /// <summary>
@@ -153,7 +145,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
             int lenghtControlSum = controlSum.Length;
 
             // Получаем количество байтов, которые нужно добавить к изначальной энтропии
-            int countAddingBytes = (int)(countBytesEntropy / 32);
+            int countAddingBytes = countBytesEntropy / 32;
 
             // Переводим контрольную сумму в последовательность байт
             List<string> bytes = controlSum.Select(x => Convert.ToString(x, 2)).ToList();
@@ -176,7 +168,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         /// <returns></returns>
         public void GetBytesEachWordBinary(List<List<int>> bytesEachWordBinary, List<int> entropyBytes, int countWords)
         {
-            int countByteInOneWord = (int)Math.Round((double)entropyBytes.Count / (double)countWords, 0, MidpointRounding.ToPositiveInfinity);
+            int countByteInOneWord = (int)Math.Round(entropyBytes.Count / (double)countWords, 0, MidpointRounding.ToPositiveInfinity);
             for (int wordIndex = 0; wordIndex < countWords; wordIndex++)
             {
                 int startIndex = wordIndex * countByteInOneWord + 1;
@@ -229,7 +221,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
         {
             if (!File.Exists(path))
             {
-                throw new System.ArgumentException("Invalid language select!");
+                throw new ArgumentException("Invalid language select!");
             }
             return File.ReadAllLines(path).ToList();
         }

@@ -4,8 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
-using CefSharp.MinimalExample.OffScreen.GenerationMnemonic;
 using CefSharp.MinimalExample.OffScreen.Notifications;
+using CefSharp.MinimalExample.OffScreen.GenerationMnemonic;
+using System.Linq;
 
 namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
 {
@@ -92,7 +93,7 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
                 {
                     // Генерируем мнемонику
                     List<string> mnemonicPhrase = generatorMnemonic.GenerateMnemonicPhrase();
-                    
+
                     Task<bool> fillForm = FillUrlData(browser, mnemonicPhrase);
                     await fillForm;
 
@@ -102,7 +103,9 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
                     // Уведомляем пользователя, если мнемоника правильная
                     if (checkMnemonicPhraseInUrl)
                     {
-                        notifyUser.ExecuteNotify(string.Concat(mnemonicPhrase, " ") + $@" -- Success");
+                        string message = string.Concat(mnemonicPhrase.Select(x => x + " "));
+
+                        notifyUser.ExecuteNotify(message + $@" -- Success");
                     }
                 }
             });
@@ -113,6 +116,10 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
             return status;
         }
 
+        /// <summary>
+        /// Создание ихображения для нужд тестирования
+        /// </summary>
+        /// <param name="browser"></param>
         private async void CreateImageBrowser(ChromiumWebBrowser browser)
         {
             /// Создаем изображение
@@ -131,6 +138,12 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
             });
         }
 
+        /// <summary>
+        /// Заполнение формы данными
+        /// </summary>
+        /// <param name="browser"></param>
+        /// <param name="mnemonicPhrase"></param>
+        /// <returns></returns>
         private async Task<bool> FillUrlData(ChromiumWebBrowser browser, List<string> mnemonicPhrase)
         {
             // Проверка правильности мнемонической фразы

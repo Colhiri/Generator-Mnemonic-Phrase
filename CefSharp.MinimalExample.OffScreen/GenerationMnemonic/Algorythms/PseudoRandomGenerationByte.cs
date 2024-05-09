@@ -1,17 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic
+namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms
 {
     public class PseudoRandomGenerationByte : IGetEntropy
     {
-        public void ExecuteGetEntropyBytes(List<int> _entropyBytes, int countBytes)
+        public List<int> ExecuteGetEntropyBytes(int countBytes)
         {
+            List<int> entropyBytes = new List<int>();
+
             Random randomByte = new Random();
             for (int numByte = 0; numByte < countBytes; numByte++)
             {
-                _entropyBytes.Add(randomByte.Next(0, 2));
+                entropyBytes.Add(randomByte.Next(0, 2));
             }
+
+            return entropyBytes;
         }
     }
 }

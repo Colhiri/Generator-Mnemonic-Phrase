@@ -4,6 +4,7 @@
 
 using System;
 using CefSharp.MinimalExample.OffScreen.GenerationMnemonic;
+using CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms;
 using CefSharp.MinimalExample.OffScreen.LoadDataToURL;
 using CefSharp.MinimalExample.OffScreen.Notifications;
 
@@ -16,16 +17,13 @@ namespace CefSharp.MinimalExample.OffScreen
     {
         /// <summary>
         /// Asynchronous demo using CefSharp.OffScreen
-        /// Loads google.com, uses javascript to fill out the search box then takes a screenshot which is opened
-        /// in the default image viewer.
-        /// For a synchronous demo see <see cref="MainSync(string[])"/> below.
         /// </summary>
         /// <param name="args">args</param>
         /// <returns>exit code</returns>
         public static void Main(string[] args)
         {
             // Автоматическое создание
-            var algorythmGPRN = new PseudoRandomGenerationByte();
+            var algorythmGPRN = new PingGenerator();
             WordListLanguage language = WordListLanguage.English;
             int countByteEntropy = 128;
             int countWord = 12;
@@ -44,8 +42,7 @@ namespace CefSharp.MinimalExample.OffScreen
             int countByteEntropy = 128;
             int countWord = 12;
             // Получение заданное количество байт энтропии
-            List<int> entropyBytes = new List<int>();
-            generation.GetEntropyBytes(entropyBytes, countByteEntropy);
+            List<int> entropyBytes = generation.GetEntropyBytes(entropyBytes, countByteEntropy);
             // Считаем контрольную сумму
             byte[] controlSum = generation.GetControlSum(entropyBytes);
             // Считаем добавочные байты для добавления в байты энтропии для разделения всех байтов на слова по 11 байтов в каждом
