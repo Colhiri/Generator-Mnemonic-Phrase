@@ -16,14 +16,14 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
         Success
     }
 
-    public class LoadData
+    public class LoadDataSolflareWithGeneration
     {
         public string urlToLoad { get; set; }
         public CreateMnemonicPhrase generatorMnemonic { get; set; }
         public Notification notifyUser { get; set; }
         public int countTestMnemonic { get; set; }
 
-        public LoadData(string urlToLoad, CreateMnemonicPhrase generatorMnemonic, Notification notifyUser, int countTestMnemonic)
+        public LoadDataSolflareWithGeneration(string urlToLoad, CreateMnemonicPhrase generatorMnemonic, Notification notifyUser, int countTestMnemonic)
         {
             this.urlToLoad = urlToLoad;
             this.generatorMnemonic = generatorMnemonic;
@@ -159,7 +159,6 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
                                                         @"el.dispatchEvent(new Event('change', {bubbles: true}));");
                 await setValue;
             }
-            await Task.Delay(100);
 
             // Нажимаем кнопку продолжить
             string continueButtonClassName = @"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium  css-1hcgjm";
@@ -183,21 +182,17 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
                 $@"var bnt = document.getElementsByClassName('{backButtonClassName}')[0];
                         bnt.click();");
             }
-            else
+            // Очищаем формы
+            maxMnemonicInput = mnemonicPhrase.Count;
+            for (int mnemonicInput = 0; mnemonicInput < maxMnemonicInput; mnemonicInput++)
             {
-                // Очищаем формы
-                maxMnemonicInput = mnemonicPhrase.Count;
-                for (int mnemonicInput = 0; mnemonicInput < maxMnemonicInput; mnemonicInput++)
-                {
-                    Task<JavascriptResponse> setValue = browser.EvaluateScriptAsync($@"var el = document.getElementById('mnemonic-input-{mnemonicInput}');
-                                                                el.focus();
-                                                                document.execCommand('insertText', false, '');" +
-                                                            @"el.dispatchEvent(new Event('change', {bubbles: true}));");
-                    await setValue;
-                }
-                await Task.Delay(100);
-                Console.WriteLine("Mnemonic phrase is incorrect");
+                Task<JavascriptResponse> setValue = browser.EvaluateScriptAsync($@"var el = document.getElementById('mnemonic-input-{mnemonicInput}');
+                                                            el.focus();
+                                                            document.execCommand('insertText', false, '');" +
+                                                        @"el.dispatchEvent(new Event('change', {bubbles: true}));");
+                await setValue;
             }
+            Console.WriteLine($"Mnemonic phrase is incorrect -- {string.Concat(mnemonicPhrase.Select(x => x + " "))}");
 
             return checkMnemonicPhraseInUrl;
         }

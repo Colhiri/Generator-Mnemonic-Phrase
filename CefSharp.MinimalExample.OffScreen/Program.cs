@@ -3,6 +3,7 @@
 // Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 using System;
+using System.Collections.Generic;
 using CefSharp.MinimalExample.OffScreen.GenerationMnemonic;
 using CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms;
 using CefSharp.MinimalExample.OffScreen.LoadDataToURL;
@@ -23,12 +24,14 @@ namespace CefSharp.MinimalExample.OffScreen
         public static void Main(string[] args)
         {
             // Автоматическое создание
-            var algorythmGPRN = new PingGenerator();
+            var algorythmGPRN = new PseudoRandomGenerationByte();
             WordListLanguage language = WordListLanguage.English;
             int countByteEntropy = 128;
             int countWord = 12;
             // Создаем генератор мнемонической фразы
             var generation = new CreateMnemonicPhrase(language, countByteEntropy, countWord, algorythmGPRN);
+            var generation1 = new Generator_iancoleman_io();
+
             // Создаем генерационную модель
             Notification notify = new Notification();
 
@@ -63,11 +66,12 @@ namespace CefSharp.MinimalExample.OffScreen
             */
 
             // Создаем новую страницу solflare через Cef
-            string url = @$"https://solflare.com/onboard/access";
-            LoadData loadData = new LoadData(url, generation, notify, 100000);
+            string url = @$"https://solflare.com/onboard";
+            // LoadDataSolflareWithGeneration loadData = new LoadDataSolflareWithGeneration(url, generation, notify, 1000000000);
+            SolFlareTestMnemonic testMnemonic = new SolFlareTestMnemonic(url, generation1, notify, 1000000);
 
             // Тестируем созданную мнемоническую фразу на сайте
-            Status checkRightMnemonicPhrase = loadData.TestingPhrase();
+            Status checkRightMnemonicPhrase = testMnemonic.TestingPhrase();
 
             Console.Write(checkRightMnemonicPhrase);
 

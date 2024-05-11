@@ -12,7 +12,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms
             Ping myPing = new Ping();
             String host = "google.com";
             byte[] buffer = new byte[32];
-            int timeout = 100;
+            int timeout = 10;
             PingOptions pingOptions = new PingOptions();
             PingReply reply = myPing.Send(host, timeout, buffer, pingOptions);
             return reply.RoundtripTime;
@@ -25,39 +25,27 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms
             List<long> pings = new List<long>();
 
             int condition = 1;
-            for (int countByte = 0; countByte < countEntropyBytes; countByte++)
+            for (int countByte = 0; countByte < countEntropyBytes * 100; countByte++)
             {
-                if (condition == 3) condition = 1;
-
                 // Первое число остается каким было
                 // Второе число складывается с предыдущим
                 // Третье число реверсируется
                 long pingValue = pingGenerator.Test();
-
-                switch (condition)
-                {
-                    case 1:
-                        pings.Add(pingValue);
-                        break;
-                    case 2:
-                        pings.Add(pingValue + pings[countByte - 1]);
-                        break;
-                    case 3:
-                        long valuePing = long.Parse(string.Concat(pingValue.ToString().ToCharArray().Reverse()));
-                        pings.Add(valuePing);
-                        break;
-                }
-                condition++;
+                pings.Add(pingValue);
             }
 
+            long allValues = pings.Sum();
+
             // Преобразование пинга в байты
-            List<string> pingsToByte = pings.Select(x => Convert.ToString(x, 2)).ToList();
+            // List<string> pingsToByte = pings.Select(x => Convert.ToString(x, 2)).ToList();
+            string bytes = Convert.ToString(allValues, 2);
 
             // Объединение всех полученных байтов
-            string concaPingBytes = string.Concat(pingsToByte);
+            // string concaPingBytes = string.Concat(pingsToByte);
 
             // Берем нужное количество байтов
-            string needEntropy = concaPingBytes[0..countEntropyBytes];
+            // string needEntropy = concaPingBytes[0..countEntropyBytes];
+            string needEntropy = bytes[0..countEntropyBytes];
 
             List<int> bytesEntropy = needEntropy.ToCharArray().Select(x => int.Parse(x.ToString())).ToList();
 
