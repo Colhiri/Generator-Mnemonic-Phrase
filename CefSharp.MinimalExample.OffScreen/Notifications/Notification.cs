@@ -6,11 +6,13 @@ namespace CefSharp.MinimalExample.OffScreen.Notifications
 {
     public class Notification
     {
-        public string pathToLogFile { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "MnemonicPhrase.txt");
+        public string fileName { get; set; }
+        public string pathToLogFile { get; set; }
 
-        public Notification()
+        public Notification(string fileName)
         {
-
+            this.fileName = fileName;
+            this.pathToLogFile = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), fileName);
         }
 
         /// <summary>

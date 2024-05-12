@@ -12,9 +12,13 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms
     {
         public string urlToLoad { get; set; }
 
+        public ChromiumWebBrowser browser { get; set; }
+
         public Generator_iancoleman_io()
         {
             this.urlToLoad = @"https://iancoleman.io/bip39/#english";
+
+            browser = new ChromiumWebBrowser(urlToLoad);
         }
 
         /// <summary>
@@ -41,8 +45,12 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms
                     throw new Exception("Unable to initialize CEF, check the log file.");
                 }
 
+
+                //
                 // Create the CefSharp.OffScreen.ChromiumWebBrowser instance
-                var browser = new ChromiumWebBrowser(urlToLoad);
+                // Create the CefSharp.OffScreen.ChromiumWebBrowser instance
+                // Create the CefSharp.OffScreen.ChromiumWebBrowser instance
+                // browser = new ChromiumWebBrowser(urlToLoad);
 
                 var initialLoadResponse = await browser.WaitForInitialLoadAsync();
 
@@ -73,6 +81,8 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms
                 await getMnemonicPhrase;
 
                 mnemonicPhrase = (getMnemonicPhrase.Result.Result as string).Split().ToList();
+
+                browser.Dispose();
             });
             return mnemonicPhrase;    
         }

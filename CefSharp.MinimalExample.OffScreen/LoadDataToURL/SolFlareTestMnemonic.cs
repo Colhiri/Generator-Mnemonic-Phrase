@@ -31,11 +31,11 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
         /// Тестирование мнемонической фразы
         /// </summary>
         /// <returns></returns>
-        public Status TestingPhrase()
+        public void TestingPhrase()
         {
-            return TestingPhrase(urlToLoad, generatorMnemonic, notifyUser, countTestMnemonic);
+            TestingPhrase(urlToLoad, generatorMnemonic, notifyUser, countTestMnemonic);
         }
-        public Status TestingPhrase(string urlToLoad, Generator_iancoleman_io generatorMnemonic, Notification notifyUser, int countTestMnemonic)
+        public void TestingPhrase(string urlToLoad, Generator_iancoleman_io generatorMnemonic, Notification notifyUser, int countTestMnemonic)
         {
             // Статус функции
             Status status = Status.Process;
@@ -102,20 +102,19 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
                     if (checkMnemonicPhraseInUrl)
                     {
                         message = string.Concat(mnemonicPhrase.Select(x => x + " ")) + $@" -- Success";
+                        notifyUser.ExecuteNotify(message);
                     }
                     else
                     {
                         message = string.Concat(mnemonicPhrase.Select(x => x + " ")) + $@" -- FAIL";
                     }
-                    notifyUser.ExecuteNotify(message);
                 }
+
+                browser.Dispose();
             });
 
             // Тесты мнемоник завершены
             status = Status.Success;
-
-            return status;
-
         }
 
         /// <summary>

@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using CefSharp.MinimalExample.OffScreen.GenerationMnemonic;
 using CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms;
 using CefSharp.MinimalExample.OffScreen.LoadDataToURL;
@@ -29,53 +30,40 @@ namespace CefSharp.MinimalExample.OffScreen
             int countByteEntropy = 128;
             int countWord = 12;
             // Создаем генератор мнемонической фразы
-            var generation = new CreateMnemonicPhrase(language, countByteEntropy, countWord, algorythmGPRN);
             var generation1 = new Generator_iancoleman_io();
+            var generation2 = new Generator_iancoleman_io();
+            var generation3 = new Generator_iancoleman_io();
+            // var generation4 = new Generator_iancoleman_io();
 
             // Создаем генерационную модель
-            Notification notify = new Notification();
-
-            /*
-            // Ручное создание
-            // Создаем алгоритм
-            var algorythmGPRN = new PseudoRandomGenerationByte();
-            // Создаем генератор мнемонической фразы
-            var generation = new CreateMnemonicPhrase(GenerationMnemonic.WordListLanguage.English, 128, 12, algorythmGPRN);
-            // Задаем параметры ручной генерации
-            int countByteEntropy = 128;
-            int countWord = 12;
-            // Получение заданное количество байт энтропии
-            List<int> entropyBytes = generation.GetEntropyBytes(entropyBytes, countByteEntropy);
-            // Считаем контрольную сумму
-            byte[] controlSum = generation.GetControlSum(entropyBytes);
-            // Считаем добавочные байты для добавления в байты энтропии для разделения всех байтов на слова по 11 байтов в каждом
-            string addingBytes = generation.GetAddingBytes(controlSum, entropyBytes.Count());
-            // Трансформируем их из строки в массив
-            List<int> transformAddingBytesToInt = addingBytes.ToCharArray().Select(x => int.Parse(x.ToString())).ToList();
-            entropyBytes.AddRange(transformAddingBytesToInt);
-            // Разделяем байты по 11 элементов
-            List<List<int>> bytesEachWordBinary = new List<List<int>>();
-            generation.GetBytesEachWordBinary(bytesEachWordBinary, entropyBytes, countWord);
-            // Преобразуем байты из двоичной системы в десятичную
-            List<int> bytesEachWordDecimal = new List<int>();
-            generation.GetBytesEachWordDecimal(bytesEachWordDecimal, bytesEachWordBinary);
-            // Получаем мнемоническую фразу
-            string path = $"WordsForSeedPhrase/{generation.languageMnemonicPhrase}.txt";
-            List<string> wordsBIP39 = generation.GetBIP39(path);
-            List<string> mnemonicPhrase = generation.GetMnemonicPhrase(bytesEachWordDecimal, wordsBIP39);
-            */
+            Notification notify1 = new Notification("phrases_1.txt");
+            Notification notify2 = new Notification("phrases_2.txt");
+            Notification notify3 = new Notification("phrases_3.txt");
+            // Notification notify4 = new Notification("phrases_4.txt");
 
             // Создаем новую страницу solflare через Cef
             string url = @$"https://solflare.com/onboard";
             // LoadDataSolflareWithGeneration loadData = new LoadDataSolflareWithGeneration(url, generation, notify, 1000000000);
-            SolFlareTestMnemonic testMnemonic = new SolFlareTestMnemonic(url, generation1, notify, 1000000);
+            SolFlareTestMnemonic testMnemonic1 = new SolFlareTestMnemonic(url, generation1, notify1, 1000000);
+            SolFlareTestMnemonic testMnemonic2 = new SolFlareTestMnemonic(url, generation2, notify2, 1000000);
+            SolFlareTestMnemonic testMnemonic3 = new SolFlareTestMnemonic(url, generation3, notify3, 1000000);
+            // SolFlareTestMnemonic testMnemonic4 = new SolFlareTestMnemonic(url, generation4, notify4, 1000000);
 
             // Тестируем созданную мнемоническую фразу на сайте
-            Status checkRightMnemonicPhrase = testMnemonic.TestingPhrase();
+            // testMnemonic.TestingPhrase();
+            // testMnemonic2.TestingPhrase();
 
-            Console.Write(checkRightMnemonicPhrase);
 
-            Console.ReadKey();
+            Thread task1 = new Thread(new ThreadStart(testMnemonic1.TestingPhrase));
+            Thread task2 = new Thread(new ThreadStart(testMnemonic2.TestingPhrase));
+            Thread task3 = new Thread(new ThreadStart(testMnemonic3.TestingPhrase));
+            // Thread task4 = new Thread(new ThreadStart(testMnemonic4.TestingPhrase));
+
+            task1.Start();
+            task2.Start();
+            task3.Start();
+            // task4.Start();
+
 
         }
     }
