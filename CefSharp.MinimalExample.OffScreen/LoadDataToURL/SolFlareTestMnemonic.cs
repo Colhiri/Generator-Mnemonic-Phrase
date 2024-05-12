@@ -66,28 +66,25 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
                     throw new Exception(string.Format("Page load failed with ErrorCode:{0}, HttpStatusCode:{1}", initialLoadResponse.ErrorCode, initialLoadResponse.HttpStatusCode));
                 }
 
-
                 string buttonHasAlreadyWallet = @"MuiButtonBase-root MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium  css-1hcgjm";
                 // Проверка возможности заполнения страницы
                 Task<JavascriptResponse> setValue = browser.EvaluateScriptAsync($@"document.getElementsByClassName('{buttonHasAlreadyWallet}')[1].click();");
                 await setValue;
 
-                // while (!setValue.Result.Success)
-                // {
-                //     setValue = browser.EvaluateScriptAsync($@"document.getElementsByClassName('{buttonHasAlreadyWallet}')[1].click();");
-                //     await setValue;
-                // }
+                while (!setValue.Result.Success)
+                {
+                    setValue = browser.EvaluateScriptAsync($@"document.getElementsByClassName('{buttonHasAlreadyWallet}')[1].click();");
+                    await setValue;
+                }
 
-                await Task.Delay(45000);
-
-                await CreateImageBrowser(browser);
+                // await Task.Delay(45000);
 
                 for (int test = 0; test < countTestMnemonic; test++)
                 {
-
                     // Нажимаем на кнопку "У меня уже есть кошелек"
                     setValue = browser.EvaluateScriptAsync($@"document.getElementsByClassName('{buttonHasAlreadyWallet}')[1].click();");
                     await setValue;
+
 
                     // Генерируем мнемонику
                     int countWord = 12;
@@ -96,8 +93,6 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
                     // Заполняем форму 
                     Task<bool> fillForm = FillUrlData(browser, mnemonicPhrase);
                     await fillForm;
-
-                    await CreateImageBrowser(browser);
 
                     // Проверка мнемонической фразы
                     bool checkMnemonicPhraseInUrl = fillForm.Result;
@@ -175,32 +170,13 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
                         bnt.click();");
             await pushContinueButton;
 
-            await Task.Delay(5000);
+            await Task.Delay(10000);
 
             // Получить информацию о количестве найденных кошельков
-            string classNameInfo = @"MuiTypography-root MuiTypography-h2 MuiTypography-gutterBottom css-1tc4wys";
             Task<JavascriptResponse> getInfo = browser.EvaluateScriptAsync(@"document.getElementsByTagName('h2').item(0).innerHTML;");
             await getInfo;
 
-
-            /// Создаем изображение
-            // Wait for the screenshot to be taken.
-            var bitmapAsByteArray = await browser.CaptureScreenshotAsync();
-            // File path to save our screenshot e.g. C:\Users\{username}\Desktop\CefSharp screenshot.png
-            var screenshotPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "CefSharp screenshot.png");
-
-            File.WriteAllBytes(screenshotPath, bitmapAsByteArray);
-
-            // Tell Windows to launch the saved image.
-            Process.Start(new ProcessStartInfo(screenshotPath)
-            {
-                // UseShellExecute is false by default on .NET Core.
-                UseShellExecute = true
-            });
-
-
             string searchText = "No Active Wallets Found";
-
             string resultCheck = getInfo.Result.Result as string;
             if (!resultCheck.Contains(searchText))
             {
@@ -208,7 +184,9 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
             }
 
             // Возвращаемся назад
-            browser.Back();
+            Task<JavascriptResponse> backHistory = browser.EvaluateScriptAsync($@"history.back();");
+            await backHistory;
+
             await Task.Delay(500);
 
             return checkMnemonicPhraseInUrl;
@@ -236,5 +214,6 @@ namespace CefSharp.MinimalExample.OffScreen.LoadDataToURL
                 UseShellExecute = true
             });
         }
+
     }
 }

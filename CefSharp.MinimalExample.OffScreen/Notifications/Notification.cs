@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Text;
 
 namespace CefSharp.MinimalExample.OffScreen.Notifications
 {
     public class Notification
     {
-        public string pathToLogFile { get; set; } = "MnemonicPhrase.txt";
+        public string pathToLogFile { get; set; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "MnemonicPhrase.txt");
 
         public Notification()
         {
@@ -18,11 +19,10 @@ namespace CefSharp.MinimalExample.OffScreen.Notifications
         /// <param name="message"></param>
         public void ExecuteNotify(string message)
         {
-            if (!File.Exists(pathToLogFile)) File.Create(pathToLogFile);
-
-            using (StreamWriter strWriter = new StreamWriter(pathToLogFile))
+            using (FileStream writer = new FileStream(pathToLogFile, FileMode.Append))
             {
-                strWriter.Write(message);
+                byte[] buffer = Encoding.Default.GetBytes(message + "\n");
+                writer.Write(buffer);
             }
 
             Console.WriteLine(message);

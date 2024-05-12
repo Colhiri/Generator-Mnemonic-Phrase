@@ -63,7 +63,7 @@ namespace CefSharp.MinimalExample.OffScreen.GenerationMnemonic.Algorythms
                                                                                         buttonGenerate.click();");
                 await pressGenerate;
 
-                await Task.Delay(100);
+                await Task.Delay(500);
 
                 // Получаем фразу
                 Task<JavascriptResponse> getMnemonicPhrase = browser.EvaluateScriptAsync($@"function foo(){{var phrase = document.getElementById('phrase');
